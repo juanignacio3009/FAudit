@@ -63,7 +63,7 @@ if ($runInAzure) {
     $rutaPlantilla = "$env:TEMP\plantilla_dashboard.xlsx"
     
     # Descargar la plantilla directamente desde tu repositorio de GitHub
-    $urlPlantilla = "https://github.com/juanignacio3009/FAudit/blob/main/plantilla_dashboard.xlsx"
+    $urlPlantilla = "https://raw.githubusercontent.com/juanignacio3009/FAudit/main/plantilla_dashboard.xlsx"
     try {
         Invoke-WebRequest -Uri $urlPlantilla -OutFile $rutaPlantilla -UseBasicParsing
         Write-Host "  -> Plantilla visual descargada desde GitHub." -ForegroundColor DarkGray
