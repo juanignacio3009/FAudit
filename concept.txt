@@ -1,0 +1,53 @@
+# =========================
+# DOCUMENTACION DEL SCRIPT - AUDITORIA MFA - "FAudit"
+# =========================
+Version Actual: 2.0.4 (Sincronizacion GitHub y Optimizacion Cloud)
+
+# 1. OBJETIVO Y EXPLICACION
+Este script analiza la postura real de seguridad (MFA) de todos los usuarios "Miembros" de Microsoft Entra ID.
+A diferencia de los reportes estaticos del portal, este programa cruza multiples fuentes de datos en tiempo real:
+- Estado de la cuenta (Habilitada/Deshabilitada)
+- Registro de metodos MFA (Microsoft Authenticator, SMS, Hardware Keys, etc.)
+- Logs de inicio de sesion (Sign-Ins) de los ultimos 30 dias
+- Tipo de cuenta (Clasificacion Humano vs Servicio mediante Regex)
+
+Con esta informacion, clasifica a cada usuario en uno de los siguientes estados reales:
+- SEGURO: El usuario inicio sesion exitosamente validando MFA en el periodo evaluado.
+- CRITICO: El usuario inicio sesion unicamente con contraseña (SFA) burlando la seguridad.
+- SIN_ACTIVIDAD: El usuario no tiene registros de inicio de sesion interactivos en los ultimos 30 dias.
+- REVISAR: El usuario tiene patrones de log anomalos que requieren revision manual.
+
+Nota sobre Cuentas de Servicio: El script evalua y exporta a todas las cuentas para tener un registro historico completo. Sin embargo, etiqueta a las cuentas institucionales/aulas/laboratorios como "Servicio" y las excluye del calculo matematico final para no contaminar el Score Real.
+
+# 2. COMO FUNCIONA (FLUJO TECNICO)
+1. Preparacion: Fuerza la consola de PowerShell a codificacion UTF-8 para evitar errores visuales y se conecta a MS Graph API.
+2. Recoleccion de Usuarios: Obtiene unicamente cuentas corporativas reales filtrando por `userType eq 'Member'`.
+3. Descarga de Logs (Motor Optimizado): 
+   - Consulta el endpoint `beta` para permitir el uso de `$select` sobre el campo de autenticación (evitando un bug conocido de OData en v1.0).
+   - Descarga el historial de 30 días con un sistema de 3 reintentos por página ante caídas de red.
+   - Almacena decenas de miles de logs en listas genericas de .NET (`List[PSObject]`), evitando el colapso de memoria.
+4. Normalizacion: Indexa los logs en una Hashtable (Diccionario) para que la busqueda por UPN sea de complejidad O(1) (instantanea).
+5. Analisis: Evalua la logica de autenticacion (priorizando los exitos de MFA para evitar falsos positivos por refrescos de tokens SFA en segundo plano).
+6. Exportacion Segura (Safe-Exit): Todo el proceso esta envuelto en un bloque `try...finally`. Si el operador cancela el script manualmente (Ctrl+C), el programa intercepta la orden y exporta lo analizado hasta ese instante.
+   - Genera un archivo CSV histórico.
+   - Genera un archivo Excel (.xlsx) profesional con:
+     * Pestaña 'MFA_Report': Tabla de datos con filtros, auto-ajuste, columna "Tipo" y formato condicional (Rojo/Verde/Gris).
+     * Pestaña 'Dashboard': Resumen ejecutivo con metricas y el "Score Real" (calculado exclusivamente sobre los usuarios "Humanos").
+   - Plantillas Visuales: Si el script detecta un archivo `plantilla_dashboard.xlsx` en el directorio raiz, lo utiliza como base. En la nube (Azure Automation), descarga la plantilla en tiempo real desde GitHub para superar la restriccion de sincronizacion de archivos binarios.
+   - Integracion Cloud: Detecta el entorno de ejecucion. Si se encuentra en Azure Automation, guarda los archivos en la memoria temporal y envia el reporte final mediante correo electronico a traves de Microsoft Graph.
+
+# 3. HISTORIAL DE CAMBIOS Y OPTIMIZACIONES
+✔ Optimizacion Extrema (O(1)): Uso de Hashtables y Listas Genericas. Reduccion del tiempo de ejecucion de horas a segundos.
+✔ Prevencion de Mojibake: Codificacion UTF-8 forzada en consola y archivos de salida.
+✔ Limpieza CA: Eliminacion de la logica de Conditional Access para Tenants que no utilizan esta caracteristica, acelerando el procesamiento.
+✔ Noise Reduction: Incorporacion de expresiones regulares (Regex) para identificar instantaneamente aulas, labs y cuentas de integracion.
+✔ Dashboard Anti-Corrupcion: Creacion de hoja de resumen mediante inyeccion directa de celdas (sin XML de PivotTables ni Graficos 3D), garantizando que el Excel abra siempre de forma ultra rapida y sin advertencias de recuperacion en cualquier version de Office.
+✔ Cloud & Email: Integracion con Managed Identities (`-Identity`) para logueo desatendido en Azure y envio de correo con payload de Microsoft Graph API.
+✔ Template Engine: Integracion con archivos base para preservar graficos generados manualmente sin riesgo de corrupcion XML.
+✔ Sincronizacion GitHub: Capacidad de descargar recursos binarios (Excel templates) directamente desde un repositorio remoto durante ejecuciones desatendidas.
+✔ Optimizacion UI Cloud: Supresion inteligente de `Write-Progress` y comandos de consola (`Clear-Host`) al detectar ejecucion en Azure para evitar colapsos de memoria y errores en hosts sin interaccion.
+
+# 4. RECOMENDACIONES DE USO E IMPLEMENTACION
+- Remediacion: Se recomienda exportar periodicamente a los usuarios con estado "CRITICO" y contactarlos proactivamente o incluirlos en grupos de restriccion.
+- Ventana de Auditoria: Mantener la variable `$diasLogs = 30` para asegurar una "ventana movil" precisa que evalue un ciclo de negocio mensual completo.
+- Requisitos Previos: El entorno donde corra el script debe tener instalado el modulo de exportacion ejecutando: `Install-Module ImportExcel -Scope CurrentUser`.
