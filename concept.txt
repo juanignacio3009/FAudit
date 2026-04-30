@@ -1,7 +1,7 @@
 # =========================
 # DOCUMENTACION DEL SCRIPT - AUDITORIA MFA - "FAudit"
 # =========================
-Version Actual: 2.0.4 (Sincronizacion GitHub y Optimizacion Cloud)
+Version Actual: 2.0.5 (Notificaciones Manuales y Correcciones UTF-8)
 
 # 1. OBJETIVO Y EXPLICACION
 Este script analiza la postura real de seguridad (MFA) de todos los usuarios "Miembros" de Microsoft Entra ID.
@@ -46,6 +46,7 @@ Nota sobre Cuentas de Servicio: El script evalua y exporta a todas las cuentas p
 ✔ Template Engine: Integracion con archivos base para preservar graficos generados manualmente sin riesgo de corrupcion XML.
 ✔ Sincronizacion GitHub: Capacidad de descargar recursos binarios (Excel templates) directamente desde un repositorio remoto durante ejecuciones desatendidas.
 ✔ Optimizacion UI Cloud: Supresion inteligente de `Write-Progress` y comandos de consola (`Clear-Host`) al detectar ejecucion en Azure para evitar colapsos de memoria y errores en hosts sin interaccion.
+✔ Modulo de Notificacion: Agregado script complementario (FANotify) para envio de correos solicitando feedback a usuarios criticos antes de aplicar restricciones, con soporte seguro de caracteres HTML/UTF-8.
 
 # 4. RECOMENDACIONES DE USO E IMPLEMENTACION
 - Remediacion: Se recomienda exportar periodicamente a los usuarios con estado "CRITICO" y contactarlos proactivamente o incluirlos en grupos de restriccion.

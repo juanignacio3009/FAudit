@@ -88,7 +88,7 @@ $emailDestinatario = "juanignaciomecchia@gmail.com" # Quien recibe el reporte
 $clasificarCuentasServicio = $true
 $patronesExcluidos = @(
     # 1. Administradores, Pruebas y Auditoria
-    "^admin", "^prueba", "^test", "^auditoria", "^seginfo",
+    "^admin", "^prueba", "^test", "^auditoria", "^seginfo", "^Laura.Rosso", "^Belen.Mende", "^JuanCarlos.Rabbat", "^Jefedeturno",
 
     # 2. Infraestructura, Aulas, Laboratorios y Salas
     "^arccpc", "^ncaula", "^nclab", "^nclcd", "^ncpar", "^nctotem", "^ncplayer",
