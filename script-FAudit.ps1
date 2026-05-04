@@ -77,7 +77,7 @@ if ($runInAzure) {
 
 $rutaCsv = "$ruta\mfa_auditoria_$fecha.csv"
 $rutaExcel = "$ruta\mfa_auditoria_$fecha.xlsx"
-$diasLogs = 1
+$diasLogs = 30
 
 # Configuracion de Correo Electronico
 $enviarCorreo = $true
