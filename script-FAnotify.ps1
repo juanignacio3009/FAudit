@@ -38,7 +38,7 @@ $cuerpoMensaje = @"
 <body style="font-family: Arial, sans-serif; color: #333;">
     <p>Hola,</p>
     <p>Desde el equipo de Seguridad Inform&aacute;tica de Siglo 21 nos comunicamos porque hemos detectado que tu cuenta institucional a&uacute;n no tiene configurada la <b>Autenticaci&oacute;n Multifactor (MFA)</b>.</p>
-    <p>Para proteger la informaci&oacute;n de la instituci&oacute;n, en las pr&oacute;ximas semanas ser&aacute; obligatorio el uso de MFA para todos los usuarios al iniciar sesi&oacute;n.</p>
+    <p>Para proteger la informaci&oacute;n de nuestas cuentas, en las pr&oacute;ximas semanas ser&aacute; obligatorio el uso de MFA para todos los usuarios al iniciar sesi&oacute;n.</p>
     <p>Antes de aplicar esta pol&iacute;tica y para evitar que tu cuenta quede bloqueada, queremos asegurarnos de que no tengas ning&uacute;n impedimento t&eacute;cnico.</p>
     <p><b>Por favor, responde a este correo inform&aacute;ndonos:</b></p>
     <ul>
