@@ -34,6 +34,15 @@ Write-Host " Iniciando proceso de auditoria..." -ForegroundColor Gray
 Write-Host ' '
 
 # =========================
+# VALIDACION DE REQUISITOS
+# =========================
+if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
+    Write-Host "[!] ADVERTENCIA: El modulo 'ImportExcel' no esta instalado." -ForegroundColor Red
+    Write-Host "    El script fallara al intentar generar el archivo .xlsx final." -ForegroundColor Red
+    Write-Host "    Instalalo ejecutando: Install-Module ImportExcel -Scope CurrentUser" -ForegroundColor Yellow
+}
+
+# =========================
 # SETUP Y AUTENTICACION
 # =========================
 $runInAzure = $true # Cambiar a $true cuando lo ejecutes en Azure Automation

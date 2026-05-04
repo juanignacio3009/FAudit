@@ -1,6 +1,6 @@
 # 🛡️ Auditoría MFA - "FAudit"
 
-**Versión Actual:** 2.0.4 *(Sincronización GitHub y Optimización Cloud)*
+**Versión Actual:** 2.0.6 *(Suite Completa: Auditoría, Notificación y Remediación)*
 
 ---
 
@@ -52,10 +52,12 @@ Con esta información, clasifica a cada usuario en uno de los siguientes estados
 - ✔️ **Template Engine:** Integración con archivos base para preservar gráficos generados manualmente sin riesgo de corrupción XML.
 - ✔️ **Sincronización GitHub:** Capacidad de descargar recursos binarios (Excel templates) directamente desde un repositorio remoto durante ejecuciones desatendidas.
 - ✔️ **Optimización UI Cloud:** Supresión inteligente de `Write-Progress` y comandos de consola (`Clear-Host`) al detectar ejecución en Azure para evitar colapsos de memoria y errores en hosts sin interacción.
+- ✔️ **Módulo de Notificación:** Script complementario (`FANotify`) para envío de correos solicitando feedback a usuarios críticos con soporte seguro UTF-8/HTML.
+- ✔️ **Módulo de Remediación:** Script complementario (`FARemediate`) para forzar la activación de Legacy MFA (Per-User MFA) de "Disabled" a "Enabled" vía Microsoft Graph.
 
 ## 4. Recomendaciones de Uso e Implementación
 
-- **Remediación:** Se recomienda exportar periódicamente a los usuarios con estado "CRÍTICO" y contactarlos proactivamente o incluirlos en grupos de restricción.
+- **Flujo de Trabajo (Ciberseguridad Madura):** 1. Auditar (`FAudit`) -> 2. Notificar a los críticos (`FANotify`) -> 3. Forzar activación a quienes no respondan (`FARemediate`).
 - **Ventana de Auditoría:** Mantener la variable `$diasLogs = 30` para asegurar una "ventana móvil" precisa que evalúe un ciclo de negocio mensual completo.
 - **Requisitos Previos:** El entorno local donde corra el script debe tener instalado el módulo de exportación ejecutando: 
 

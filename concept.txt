@@ -1,7 +1,7 @@
 # =========================
 # DOCUMENTACION DEL SCRIPT - AUDITORIA MFA - "FAudit"
 # =========================
-Version Actual: 2.0.5 (Notificaciones Manuales y Correcciones UTF-8)
+Version Actual: 2.0.6 (Suite Completa: Auditoria, Notificacion y Remediacion)
 
 # 1. OBJETIVO Y EXPLICACION
 Este script analiza la postura real de seguridad (MFA) de todos los usuarios "Miembros" de Microsoft Entra ID.
@@ -47,8 +47,9 @@ Nota sobre Cuentas de Servicio: El script evalua y exporta a todas las cuentas p
 ✔ Sincronizacion GitHub: Capacidad de descargar recursos binarios (Excel templates) directamente desde un repositorio remoto durante ejecuciones desatendidas.
 ✔ Optimizacion UI Cloud: Supresion inteligente de `Write-Progress` y comandos de consola (`Clear-Host`) al detectar ejecucion en Azure para evitar colapsos de memoria y errores en hosts sin interaccion.
 ✔ Modulo de Notificacion: Agregado script complementario (FANotify) para envio de correos solicitando feedback a usuarios criticos antes de aplicar restricciones, con soporte seguro de caracteres HTML/UTF-8.
+✔ Modulo de Remediacion: Incorporacion del script FARemediate para la habilitacion directa de Legacy MFA (Per-User) de "Disabled" a "Enabled", ideal para tenants sin licencias Premium/Conditional Access.
 
 # 4. RECOMENDACIONES DE USO E IMPLEMENTACION
-- Remediacion: Se recomienda exportar periodicamente a los usuarios con estado "CRITICO" y contactarlos proactivamente o incluirlos en grupos de restriccion.
+- Flujo de Trabajo (Best Practice): Auditar (FAudit) -> Notificar a criticos (FANotify) -> Esperar feedback -> Remediar a los que no responden activando su MFA (FARemediate).
 - Ventana de Auditoria: Mantener la variable `$diasLogs = 30` para asegurar una "ventana movil" precisa que evalue un ciclo de negocio mensual completo.
 - Requisitos Previos: El entorno donde corra el script debe tener instalado el modulo de exportacion ejecutando: `Install-Module ImportExcel -Scope CurrentUser`.
