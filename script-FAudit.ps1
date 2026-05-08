@@ -102,7 +102,7 @@ $patronesExcluidos = @(
     # 2. Infraestructura, Aulas, Laboratorios y Salas
     "^arccpc", "^ncaula", "^nclab", "^nclcd", "^ncpar", "^nctotem", "^ncplayer",
     "^rcaula", "^rclab", "^rclcd", "^vl-lab", "^vlaula", "^sala", "^ws\d", "^wsauto",
-    "^hibrida", "^vr\d", "^cctablet", "^ccarcor", "^campus-", "^tv\.",
+    "^hibrida", "^vr\d", "^cctablet", "^ccarcor", "^campus-", "^tv\.", "^control",
 
     # 3. Cuentas de Servicio, Sincronizacion y Sistemas Internos
     "^sync_", "^svc_", "^srv_", "^iwam_", "^iusr_", "_vmware", "^klnagsvc", "^ldap",
