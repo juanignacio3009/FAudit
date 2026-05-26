@@ -119,6 +119,15 @@ $patronesExcluidos = @(
     "^posgrado", "^rrii", "^biblioteca", "^egresados", "^comunicado", "^encuestas",
     "^tickets", "^admision", "^consultas", "^centro", "^od\.", "^mesa\.ayuda",
     "^recepcion", "^sum\d*@", "^secretaria", "^presidencia", "^vicepresidencia"
+
+    # 6. Ampliacion de cuentas excluidas alimentada por nuevas auditorías
+    "^internacionalizacion21", "^sustentabilidad21", "^rcalumnos", "^ncaulero",
+    "^liqcau", "^transactor_sap", "^wds\.despliegue", "^infraestructuranc",
+    "^auditorio\.vl", "^innovaeduca21", "^anexos\.sap", "^gateway\.powerbi",
+    "^ncalumno01", "^ncalumno02", "^soysiglonews", "^miclave21-noreply",
+    "^universidadinterna", "^empleabilidad\.sevi", "^cocurriculares",
+    "^woxirc", "^aut\.clases", "^doc_hr", "^4talineasinasignar",
+    "^gabinete\.bienestar\.entrevistas"
 )
 
 New-Item -ItemType Directory -Path $ruta -Force | Out-Null
