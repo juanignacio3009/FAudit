@@ -45,7 +45,7 @@ if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
 # =========================
 # SETUP Y AUTENTICACION
 # =========================
-$runInAzure = $true # Cambiar a $true cuando lo ejecutes en Azure Automation
+$runInAzure = $false # Cambiar a $true cuando lo ejecutes en Azure Automation
 
 $scopes = @(
     "User.Read.All",
@@ -127,7 +127,9 @@ $patronesExcluidos = @(
     "^ncalumno01", "^ncalumno02", "^soysiglonews", "^miclave21-noreply",
     "^universidadinterna", "^empleabilidad\.sevi", "^cocurriculares",
     "^woxirc", "^aut\.clases", "^doc_hr", "^4talineasinasignar",
-    "^gabinete\.bienestar\.entrevistas"
+    "^gabinete\.bienestar\.entrevistas", "^ncalumno03", "^procesos_pw",
+    "^imagenmdt", "^crivero", "^od_traduccion", "^reservazonae",
+    "^support\.siglo21"
 )
 
 New-Item -ItemType Directory -Path $ruta -Force | Out-Null
@@ -143,8 +145,15 @@ $users = Get-MgUser -All -Filter "userType eq 'Member'" -Property Id,DisplayName
 Write-Host "[+] Usuarios obtenidos: $($users.Count)" -ForegroundColor Green
 
 Write-Host "[*] Obteniendo reportes de registro MFA..." -ForegroundColor Yellow
-$mfaReport = Invoke-MgGraphRequest -Method GET `
--Uri "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails"
+try {
+    $mfaReport = Invoke-MgGraphRequest -Method GET `
+        -Uri "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails" -ErrorAction Stop
+} catch {
+    Write-Host "[!] ERROR CRITICO: Tu cuenta no tiene los roles administrativos necesarios en este Tenant." -ForegroundColor Red
+    Write-Host "    Para leer reportes y logs, se requiere el rol de 'Lector Global' (Global Reader) o 'Lector de Seguridad' en Entra ID." -ForegroundColor Yellow
+    Write-Host "    Detalle tecnico: $($_.Exception.Message)" -ForegroundColor DarkGray
+    Exit
+}
 
 $mfaHash = @{}
 foreach ($u in $mfaReport.value) {

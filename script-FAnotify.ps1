@@ -1,89 +1,91 @@
 <#
 .SYNOPSIS
-    Script de notificacion manual para usuarios sin MFA (Críticos).
+    Script de notificación vía Microsoft Teams para usuarios sin MFA.
 .DESCRIPTION
-    Toma un arreglo de correos electrónicos y envía un mensaje predefinido 
-    solicitando feedback sobre por qué no han activado MFA, antes de aplicar bloqueos.
+    Toma un arreglo de correos electrónicos, crea o recupera un chat 1-a-1
+    y envía un mensaje por Teams solicitando feedback sobre la activación de MFA.
+    Incluye un enlace directo al manual PDF en la nube.
 #>
 
-# Forzar codificacion UTF-8 para evitar caracteres extraños en la consola
+# Forzar codificacion UTF-8
 try { [console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
-# =========================
-# SETUP Y AUTENTICACION
-# =========================
-$runInAzure = $false # Cambiar a $true si decides ejecutarlo desde Azure Automation
-
 Write-Host "[*] Autenticando en Microsoft Graph API..." -ForegroundColor Yellow
-if ($runInAzure) {
-    Connect-MgGraph -Identity -NoWelcome | Out-Null
-} else {
-    Connect-MgGraph -Scopes @("Mail.Send")
-}
+# Se requieren permisos Chat.ReadWrite para enviar mensajes y User.Read.All para buscar a los usuarios
+Connect-MgGraph -Scopes @("User.Read.All", "Chat.ReadWrite")
 Write-Host "[+] Autenticacion exitosa." -ForegroundColor Green
+
+# 1. Obtener el ID del usuario que ejecuta el script (Remitente)
+$meResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/me" -ErrorAction Stop
+$senderId = $meResponse.id
 
 # =========================
 # CONFIGURACION DEL MENSAJE
 # =========================
-$emailRemitente = "ignacio.mecchia@proveedor.ues21.edu.ar"
-$asunto = "Accion Requerida: Configuracion de Autenticacion Multifactor (MFA)"
 
 # ⚠️ AQUÍ PONES LOS CORREOS DE LOS USUARIOS QUE QUIERES NOTIFICAR
 $usuariosCriticos = @(
-    "juanignaciomecchia@gmail.com"
+    "Veronica.Lopez@ues21.edu.ar"
+    "Marcos.Charri@ues21.edu.ar"
+    "julieta.murat@ues21.edu.ar"
+    "david.carranza@proveedor.ues21.edu.ar"
+    "Maria.Rizzi@ues21.edu.ar"
 )
 
-$cuerpoMensaje = @"
-<html>
-<body style="font-family: Arial, sans-serif; color: #333;">
-    <p>Hola,</p>
-    <p>Desde el equipo de Seguridad Inform&aacute;tica de Siglo 21 nos comunicamos porque hemos detectado que tu cuenta institucional a&uacute;n no tiene configurada la <b>Autenticaci&oacute;n Multifactor (MFA)</b>.</p>
-    <p>Para proteger la informaci&oacute;n de nuestas cuentas, en las pr&oacute;ximas semanas ser&aacute; obligatorio el uso de MFA para todos los usuarios al iniciar sesi&oacute;n.</p>
-    <p>Antes de aplicar esta pol&iacute;tica y para evitar que tu cuenta quede bloqueada, queremos asegurarnos de que no tengas ning&uacute;n impedimento t&eacute;cnico.</p>
-    <p><b>Por favor, responde a este correo inform&aacute;ndonos:</b></p>
-    <ul>
-        <li>Si necesitas asistencia t&eacute;cnica para configurarlo.</li>
-        <li>Si existe alg&uacute;n motivo o limitaci&oacute;n (ej. robo, extrav&iacute;os, pol&iacute;tica especial) que te impida utilizar MFA.</li>
-    </ul>
-    <p>Agradecemos tu colaboraci&oacute;n para mantener nuestra red segura.</p>
-    <br>
-    <p><i>Equipo de Soporte / Seguridad Inform&aacute;tica de la Universidad Siglo 21</i></p>
-</body>
-</html>
-"@
+# ⚠️ URL del manual PDF alojado en OneDrive / SharePoint
+$urlManualPDF = "https://ues21eduar-my.sharepoint.com/:b:/g/personal/ignacio_mecchia_proveedor_ues21_edu_ar/IQDou-twO24jRbiSwV91lFgYAXTXI6A4yoTMYDaosSUyYfE?e=JwqL64"
 
 # =========================
-# BUCLE DE ENVÍO DE CORREOS
+# BUCLE DE ENVÍO DE MENSAJES (TEAMS)
 # =========================
 Write-Host ' '
-Write-Host "Iniciando envio de correos a $($usuariosCriticos.Count) usuarios criticos..." -ForegroundColor Cyan
+Write-Host "Iniciando envio de mensajes por Teams a $($usuariosCriticos.Count) usuarios..." -ForegroundColor Cyan
 
 foreach ($destinatario in $usuariosCriticos) {
     Write-Host " -> Procesando: $destinatario" -NoNewline
     
-    $mailBody = @{
-        message = @{
-            subject = $asunto
-            body = @{
-                contentType = "HTML"
-                content = $cuerpoMensaje
-            }
-            toRecipients = @(
-                @{ emailAddress = @{ address = $destinatario } }
+    try {
+        # 2. Obtener información del destinatario
+        $targetUser = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$destinatario" -ErrorAction Stop
+        $targetId = $targetUser.id
+        
+        # Extraer correctamente el primer nombre (Prioriza 'GivenName' para evitar agarrar el Apellido)
+        if (-not [string]::IsNullOrWhiteSpace($targetUser.givenName)) {
+            $primerNombre = ($targetUser.givenName -split " ")[0]
+        } elseif ($targetUser.displayName -match ",") {
+            $primerNombre = (($targetUser.displayName -split ",")[1].Trim() -split " ")[0]
+        } else {
+            $primerNombre = ($targetUser.displayName -split " ")[0]
+        }
+
+        # 3. Construir el cuerpo del mensaje personalizado en HTML
+        # Se usan entidades HTML (&iacute;, &oacute;, etc.) para evitar los caracteres rotos por codificacion ANSI
+        $cuerpoMensaje = @"
+Buen d&iacute;a <b>$primerNombre</b>!! Soy Juan Ignacio, del equipo de soporte Microsoft siglo 21, te escribo porque detectamos de que no tenes el doble factor activado en tu cuenta, &iquest;tuviste alg&uacute;n problema que recuerdes o necesitas ayuda para configurarlo?<br><br>
+&#128073; <a href='$urlManualPDF'>Podes revisar el manual de configuraci&oacute;n paso a paso haciendo clic aqu&iacute;</a>.
+"@
+
+        # 4. Crear o recuperar el Chat 1-a-1
+        $chatPayload = @{
+            chatType = "oneOnOne"
+            members = @(
+                @{ "@odata.type" = "#microsoft.graph.aadUserConversationMember"; roles = @("owner"); "user@odata.bind" = "https://graph.microsoft.com/v1.0/users('$senderId')" },
+                @{ "@odata.type" = "#microsoft.graph.aadUserConversationMember"; roles = @("owner"); "user@odata.bind" = "https://graph.microsoft.com/v1.0/users('$targetId')" }
             )
         }
-        saveToSentItems = "true" # Guarda una copia en los 'Elementos Enviados' del remitente
-    }
 
-    try {
-        $endpointUri = if ($runInAzure) { "https://graph.microsoft.com/v1.0/users/$emailRemitente/sendMail" } else { "https://graph.microsoft.com/v1.0/me/sendMail" }
-        Invoke-MgGraphRequest -Method POST -Uri $endpointUri -Body $mailBody -ErrorAction Stop
-        Write-Host " [ENVIADO]" -ForegroundColor Green
+        $chatResponse = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/chats" -Body $chatPayload -ErrorAction Stop
+        $chatId = $chatResponse.id
+
+        # 5. Enviar el mensaje al Chat
+        $msgPayload = @{ body = @{ contentType = "html"; content = $cuerpoMensaje } }
+        Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/chats/$chatId/messages" -Body $msgPayload -ErrorAction Stop
+        
+        Write-Host " [ENVIADO POR TEAMS]" -ForegroundColor Green
+        Start-Sleep -Seconds 1 # Pequeña pausa para no saturar la API (Throttling)
     } catch {
         Write-Host " [ERROR: $_]" -ForegroundColor Red
     }
 }
-
-Write-Host ' '
-Write-Host "[*] Proceso de notificacion finalizado. Desconectando..." -ForegroundColor DarkGray
+Write-Host "[*] Proceso finalizado. Desconectando..." -ForegroundColor DarkGray
 Disconnect-MgGraph
